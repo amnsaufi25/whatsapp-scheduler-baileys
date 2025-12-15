@@ -19,7 +19,6 @@ const deleteCancelBtn = document.getElementById('deleteCancelBtn');
 const deleteConfirmBtn = document.getElementById('deleteConfirmBtn');
 const qrOverlay = document.getElementById('qrOverlay');
 const qrClose = document.getElementById('qrClose');
-const qrCanvas = document.getElementById('qrCanvas');
 const qrImage = document.getElementById('qrImage');
 const qrLoading = document.getElementById('qrLoading');
 const qrRefreshBtn = document.getElementById('qrRefreshBtn');
@@ -160,44 +159,38 @@ function updateStatus(status) {
   }
 }
 
-// Render QR code
-async function renderQrCode(qrData) {
+// Render QR code using external API
+function renderQrCode(qrData) {
   console.log('Rendering QR code, data length:', qrData ? qrData.length : 0);
   
   if (!qrData) {
     qrLoading.textContent = 'No QR data available';
     qrLoading.classList.remove('hidden');
-    qrCanvas.style.display = 'none';
     qrImage.style.display = 'none';
     return;
   }
   
-  try {
-    qrLoading.classList.remove('hidden');
-    qrLoading.textContent = 'Loading QR...';
-    
-    // Try using QRCode.toDataURL for image approach
-    const dataUrl = await QRCode.toDataURL(qrData, {
-      width: 256,
-      margin: 2,
-      color: {
-        dark: '#000000',
-        light: '#ffffff'
-      }
-    });
-    
-    qrImage.src = dataUrl;
-    qrImage.style.display = 'block';
-    qrCanvas.style.display = 'none';
+  qrLoading.classList.remove('hidden');
+  qrLoading.textContent = 'Loading QR...';
+  
+  // Use QR Server API to generate QR code image
+  const encodedData = encodeURIComponent(qrData);
+  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=256x256&data=${encodedData}`;
+  
+  qrImage.onload = () => {
     qrLoading.classList.add('hidden');
-    console.log('QR code rendered successfully as image');
-  } catch (error) {
-    console.error('Failed to render QR code:', error);
-    qrLoading.textContent = 'QR Error - See terminal logs';
+    qrImage.style.display = 'block';
+    console.log('QR code rendered successfully');
+  };
+  
+  qrImage.onerror = () => {
+    console.error('Failed to load QR code image');
+    qrLoading.textContent = 'Failed to load QR';
     qrLoading.classList.remove('hidden');
-    qrCanvas.style.display = 'none';
     qrImage.style.display = 'none';
-  }
+  };
+  
+  qrImage.src = qrUrl;
 }
 
 // Open QR modal
