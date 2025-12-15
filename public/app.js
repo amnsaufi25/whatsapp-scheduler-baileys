@@ -17,8 +17,13 @@ const deleteOverlay = document.getElementById('deleteOverlay');
 const deleteClose = document.getElementById('deleteClose');
 const deleteCancelBtn = document.getElementById('deleteCancelBtn');
 const deleteConfirmBtn = document.getElementById('deleteConfirmBtn');
+const qrOverlay = document.getElementById('qrOverlay');
+const qrClose = document.getElementById('qrClose');
+const qrCanvas = document.getElementById('qrCanvas');
+const qrLoading = document.getElementById('qrLoading');
 
 let deleteJobId = null;
+let currentQrCode = null;
 
 // Fetch jobs from API
 async function fetchJobs() {
@@ -119,10 +124,20 @@ function updateStatus(status) {
     case 'open':
       statusEl.classList.add('connected');
       textEl.textContent = 'Connected';
+      currentQrCode = null;
+      closeQrModal();
       break;
     case 'qr':
       statusEl.classList.add('qr');
       textEl.textContent = 'Scan QR Code';
+      if (status.qrCode && status.qrCode !== currentQrCode) {
+        currentQrCode = status.qrCode;
+        renderQrCode(status.qrCode);
+        // Auto-open QR modal if not already open
+        if (!qrOverlay.classList.contains('active')) {
+          openQrModal();
+        }
+      }
       break;
     case 'connecting':
       textEl.textContent = 'Connecting...';
@@ -131,11 +146,41 @@ function updateStatus(status) {
     case 'logged_out':
       statusEl.classList.add('disconnected');
       textEl.textContent = 'Disconnected';
+      currentQrCode = null;
       break;
     default:
       statusEl.classList.add('disconnected');
       textEl.textContent = 'Unknown';
   }
+}
+
+// Render QR code to canvas
+function renderQrCode(qrData) {
+  qrLoading.classList.add('hidden');
+  QRCode.toCanvas(qrCanvas, qrData, {
+    width: 256,
+    margin: 2,
+    color: {
+      dark: '#000000',
+      light: '#ffffff'
+    }
+  }, (error) => {
+    if (error) {
+      console.error('Failed to render QR code:', error);
+      qrLoading.textContent = 'Failed to load QR';
+      qrLoading.classList.remove('hidden');
+    }
+  });
+}
+
+// Open QR modal
+function openQrModal() {
+  qrOverlay.classList.add('active');
+}
+
+// Close QR modal
+function closeQrModal() {
+  qrOverlay.classList.remove('active');
 }
 
 // Open modal for new job
@@ -260,6 +305,14 @@ jobForm.addEventListener('submit', handleSubmit);
 deleteClose.addEventListener('click', closeDeleteConfirm);
 deleteCancelBtn.addEventListener('click', closeDeleteConfirm);
 deleteConfirmBtn.addEventListener('click', handleDelete);
+qrClose.addEventListener('click', closeQrModal);
+
+// Click on status to open QR modal when QR is available
+statusEl.addEventListener('click', () => {
+  if (statusEl.classList.contains('qr') && currentQrCode) {
+    openQrModal();
+  }
+});
 
 // Close modals on overlay click
 modalOverlay.addEventListener('click', (e) => {
@@ -268,12 +321,16 @@ modalOverlay.addEventListener('click', (e) => {
 deleteOverlay.addEventListener('click', (e) => {
   if (e.target === deleteOverlay) closeDeleteConfirm();
 });
+qrOverlay.addEventListener('click', (e) => {
+  if (e.target === qrOverlay) closeQrModal();
+});
 
 // Close modals on Escape key
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') {
     closeModal();
     closeDeleteConfirm();
+    closeQrModal();
   }
 });
 
@@ -281,8 +338,8 @@ document.addEventListener('keydown', (e) => {
 fetchJobs();
 fetchStatus();
 
-// Auto-refresh status every 10 seconds
-setInterval(fetchStatus, 10000);
+// Auto-refresh status every 5 seconds (faster for QR code updates)
+setInterval(fetchStatus, 5000);
 
 // Refresh jobs every 30 seconds
 setInterval(fetchJobs, 30000);

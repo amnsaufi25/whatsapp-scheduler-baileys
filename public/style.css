@@ -425,6 +425,68 @@ form {
   border-bottom: 1px solid var(--border);
 }
 
+/* QR Code Modal */
+.modal-qr {
+  max-width: 400px;
+  text-align: center;
+}
+
+.qr-content {
+  padding: 1.5rem;
+}
+
+.qr-content p {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  margin-bottom: 1.5rem;
+}
+
+.qr-container {
+  position: relative;
+  display: inline-block;
+  background: #fff;
+  padding: 1rem;
+  border-radius: var(--radius);
+  margin-bottom: 1rem;
+}
+
+.qr-container canvas {
+  display: block;
+}
+
+.qr-loading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  color: var(--bg-primary);
+  font-size: 0.875rem;
+  border-radius: var(--radius);
+}
+
+.qr-loading.hidden {
+  display: none;
+}
+
+.qr-note {
+  font-size: 0.75rem !important;
+  color: var(--text-muted) !important;
+  margin-bottom: 0 !important;
+}
+
+/* Clickable status for QR */
+.status.qr {
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.status.qr:hover {
+  background: var(--bg-tertiary);
+  border-color: var(--warning);
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .container {
