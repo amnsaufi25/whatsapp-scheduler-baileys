@@ -117,6 +117,7 @@ app.delete('/api/jobs/:id', (req, res) => {
 
 // Get WhatsApp connection status
 app.get('/api/status', (req, res) => {
+  console.log('Status API called - state:', connectionStatus.state, 'qrCode exists:', !!connectionStatus.qrCode);
   res.json(connectionStatus);
 });
 

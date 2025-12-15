@@ -109,6 +109,7 @@ async function fetchStatus() {
   try {
     const res = await fetch('/api/status');
     const status = await res.json();
+    console.log('Status received:', status.state, 'QR exists:', !!status.qrCode);
     updateStatus(status);
   } catch (err) {
     console.error('Failed to fetch status:', err);
@@ -160,6 +161,15 @@ function updateStatus(status) {
 
 // Render QR code to canvas
 async function renderQrCode(qrData) {
+  console.log('Rendering QR code, data length:', qrData ? qrData.length : 0);
+  console.log('QR data preview:', qrData ? qrData.substring(0, 50) + '...' : 'null');
+  
+  if (!qrData) {
+    qrLoading.textContent = 'No QR data available';
+    qrLoading.classList.remove('hidden');
+    return;
+  }
+  
   try {
     qrLoading.classList.remove('hidden');
     qrLoading.textContent = 'Loading QR...';
@@ -177,7 +187,8 @@ async function renderQrCode(qrData) {
     console.log('QR code rendered successfully');
   } catch (error) {
     console.error('Failed to render QR code:', error);
-    qrLoading.textContent = 'Failed to load QR';
+    console.error('QR data that failed:', qrData);
+    qrLoading.textContent = 'Failed to load QR - check console';
     qrLoading.classList.remove('hidden');
   }
 }
