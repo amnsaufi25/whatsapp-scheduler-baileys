@@ -121,6 +121,22 @@ app.get('/api/status', (req, res) => {
   res.json(connectionStatus);
 });
 
+// Debug time and trigger
+app.get('/api/debug/time', async (req, res) => {
+  const now = nowMYT();
+  const serverTime = new Date();
+  
+  // Force process jobs
+  await processJobs();
+  
+  res.json({
+    serverTime: serverTime.toISOString(),
+    mytTime: now.toISOString(),
+    localeString: now.toLocaleString(),
+    message: 'Processed jobs'
+  });
+});
+
 /* ---------- Scheduler ---------- */
 
 async function processJobs() {
