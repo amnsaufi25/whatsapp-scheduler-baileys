@@ -62,14 +62,7 @@ export async function connectWhatsApp() {
       } else {
         connectionStatus.state = 'logged_out';
         console.log('Logged out from WhatsApp.');
-        console.log('Delete auth_info folder and restart to re-scan QR.');
-        // Auto-reconnect after 5 seconds
-        setTimeout(() => {
-          if (connectionStatus.state === 'logged_out') {
-            console.log('Attempting to reconnect...');
-            reconnectWhatsApp();
-          }
-        }, 5000);
+        console.log('Use /api/reconnect endpoint or click reconnect in frontend to get new QR code.');
       }
     }
   });
@@ -80,16 +73,41 @@ export async function connectWhatsApp() {
 // Reconnect function that clears auth and gets new QR
 export async function reconnectWhatsApp() {
   try {
+    console.log('reconnectWhatsApp called, current state:', connectionStatus.state);
     const authPath = path.join(process.cwd(), 'auth_info');
+    
     if (fs.existsSync(authPath)) {
-      console.log('Clearing old auth session...');
-      fs.rmSync(authPath, { recursive: true, force: true });
+      console.log('Clearing old auth session from:', authPath);
+      try {
+        fs.rmSync(authPath, { recursive: true, force: true });
+        console.log('Auth folder deleted successfully');
+      } catch (deleteErr) {
+        console.error('Error deleting auth folder:', deleteErr);
+        // Try to delete individual files
+        const files = fs.readdirSync(authPath);
+        for (const file of files) {
+          try {
+            fs.unlinkSync(path.join(authPath, file));
+          } catch (e) {
+            console.error('Error deleting file:', file, e);
+          }
+        }
+      }
+    } else {
+      console.log('No auth folder found, proceeding with fresh connection');
     }
+    
     connectionStatus.state = 'connecting';
     connectionStatus.qrCode = null;
-    return await connectWhatsApp();
+    
+    console.log('Calling connectWhatsApp...');
+    const newSock = await connectWhatsApp();
+    console.log('New socket created, waiting for QR code...');
+    
+    return newSock;
   } catch (err) {
     console.error('Failed to reconnect:', err);
     connectionStatus.state = 'disconnected';
+    throw err;
   }
 }

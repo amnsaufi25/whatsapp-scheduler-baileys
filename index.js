@@ -44,7 +44,7 @@ function getNextId(jobs) {
 
 /* ---------- App ---------- */
 
-const sock = await connectWhatsApp();
+let sock = await connectWhatsApp();
 
 /* ---------- REST API ---------- */
 
@@ -124,9 +124,12 @@ app.get('/api/status', (req, res) => {
 // Reconnect WhatsApp (clears auth and gets new QR)
 app.post('/api/reconnect', async (req, res) => {
   try {
-    await reconnectWhatsApp();
+    console.log('Reconnect API called, current state:', connectionStatus.state);
+    sock = await reconnectWhatsApp();
+    console.log('Reconnect successful, new socket created');
     res.json({ success: true, message: 'Reconnecting... Check status for QR code' });
   } catch (err) {
+    console.error('Reconnect API error:', err);
     res.status(500).json({ error: err.message });
   }
 });
