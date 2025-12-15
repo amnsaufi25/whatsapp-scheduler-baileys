@@ -33,8 +33,9 @@ export async function connectWhatsApp() {
     if (qr) {
       connectionStatus.qrCode = qr;
       connectionStatus.state = 'qr';
-      console.log('\nScan this QR code using WhatsApp → Linked Devices\n');
+      console.log('\n✅ QR CODE GENERATED - Scan this QR code using WhatsApp → Linked Devices\n');
       qrcode.generate(qr, { small: true });
+      console.log('QR code stored in connectionStatus.qrCode, length:', qr.length);
     }
 
     // Connected
@@ -80,17 +81,24 @@ export async function reconnectWhatsApp() {
       console.log('Clearing old auth session from:', authPath);
       try {
         fs.rmSync(authPath, { recursive: true, force: true });
-        console.log('Auth folder deleted successfully');
+        console.log('✅ Auth folder deleted successfully');
       } catch (deleteErr) {
         console.error('Error deleting auth folder:', deleteErr);
         // Try to delete individual files
-        const files = fs.readdirSync(authPath);
-        for (const file of files) {
-          try {
-            fs.unlinkSync(path.join(authPath, file));
-          } catch (e) {
-            console.error('Error deleting file:', file, e);
+        try {
+          const files = fs.readdirSync(authPath);
+          for (const file of files) {
+            try {
+              fs.unlinkSync(path.join(authPath, file));
+            } catch (e) {
+              console.error('Error deleting file:', file, e);
+            }
           }
+          fs.rmdirSync(authPath);
+          console.log('✅ Auth folder cleared manually');
+        } catch (e) {
+          console.error('Could not fully delete auth folder:', e);
+          throw new Error('Failed to clear auth folder: ' + e.message);
         }
       }
     } else {
@@ -102,11 +110,12 @@ export async function reconnectWhatsApp() {
     
     console.log('Calling connectWhatsApp...');
     const newSock = await connectWhatsApp();
-    console.log('New socket created, waiting for QR code...');
+    console.log('✅ New socket created, QR code will appear shortly...');
     
+    // Return immediately - QR code will come via event handler
     return newSock;
   } catch (err) {
-    console.error('Failed to reconnect:', err);
+    console.error('❌ Failed to reconnect:', err);
     connectionStatus.state = 'disconnected';
     throw err;
   }

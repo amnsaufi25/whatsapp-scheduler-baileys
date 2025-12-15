@@ -216,20 +216,35 @@ async function reconnectWhatsApp() {
   try {
     statusEl.querySelector('.status-text').textContent = 'Reconnecting...';
     const res = await fetch('/api/reconnect', { method: 'POST' });
+    
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({ error: 'Unknown error' }));
+      throw new Error(errorData.error || `HTTP ${res.status}`);
+    }
+    
     const data = await res.json();
     console.log('Reconnect response:', data);
-    // Refresh status after 1 second
-    setTimeout(() => {
+    
+    statusEl.querySelector('.status-text').textContent = 'Connecting...';
+    
+    // Start aggressive polling for QR code
+    let pollCount = 0;
+    const maxPolls = 30; // 30 seconds max
+    
+    const pollInterval = setInterval(() => {
+      pollCount++;
       fetchStatus();
-      // Keep checking every 2 seconds until connected or QR appears
-      const checkInterval = setInterval(() => {
-        fetchStatus().then(() => {
-          if (!statusEl.classList.contains('disconnected')) {
-            clearInterval(checkInterval);
-          }
-        });
-      }, 2000);
-    }, 1000);
+      
+      if (statusEl.classList.contains('qr') || statusEl.classList.contains('connected')) {
+        clearInterval(pollInterval);
+        console.log('QR code or connection detected!');
+      } else if (pollCount >= maxPolls) {
+        clearInterval(pollInterval);
+        statusEl.querySelector('.status-text').textContent = 'Timeout - Click to try again';
+        console.log('Polling timeout');
+      }
+    }, 1000); // Poll every second
+    
   } catch (err) {
     console.error('Failed to reconnect:', err);
     statusEl.querySelector('.status-text').textContent = 'Reconnect failed - Click to try again';
