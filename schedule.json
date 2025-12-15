@@ -1,0 +1,16 @@
+[
+  {
+    "id": 1,
+    "phone": "60145036225",
+    "message": "Assalamualaikum. Kelas bermula jam 8 malam.",
+    "sendAt": "2025-12-15T15:44:00+08:00",
+    "sent": true
+  },
+  {
+    "id": 2,
+    "phone": "60145036225",
+    "message": "Hang nak pi mana",
+    "sendAt": "2025-12-15T07:56:00.000Z",
+    "sent": true
+  }
+]
