@@ -20,6 +20,7 @@ const deleteConfirmBtn = document.getElementById('deleteConfirmBtn');
 const qrOverlay = document.getElementById('qrOverlay');
 const qrClose = document.getElementById('qrClose');
 const qrCanvas = document.getElementById('qrCanvas');
+const qrImage = document.getElementById('qrImage');
 const qrLoading = document.getElementById('qrLoading');
 const qrRefreshBtn = document.getElementById('qrRefreshBtn');
 
@@ -159,14 +160,15 @@ function updateStatus(status) {
   }
 }
 
-// Render QR code to canvas
+// Render QR code
 async function renderQrCode(qrData) {
   console.log('Rendering QR code, data length:', qrData ? qrData.length : 0);
-  console.log('QR data preview:', qrData ? qrData.substring(0, 50) + '...' : 'null');
   
   if (!qrData) {
     qrLoading.textContent = 'No QR data available';
     qrLoading.classList.remove('hidden');
+    qrCanvas.style.display = 'none';
+    qrImage.style.display = 'none';
     return;
   }
   
@@ -174,7 +176,8 @@ async function renderQrCode(qrData) {
     qrLoading.classList.remove('hidden');
     qrLoading.textContent = 'Loading QR...';
     
-    await QRCode.toCanvas(qrCanvas, qrData, {
+    // Try using QRCode.toDataURL for image approach
+    const dataUrl = await QRCode.toDataURL(qrData, {
       width: 256,
       margin: 2,
       color: {
@@ -183,13 +186,17 @@ async function renderQrCode(qrData) {
       }
     });
     
+    qrImage.src = dataUrl;
+    qrImage.style.display = 'block';
+    qrCanvas.style.display = 'none';
     qrLoading.classList.add('hidden');
-    console.log('QR code rendered successfully');
+    console.log('QR code rendered successfully as image');
   } catch (error) {
     console.error('Failed to render QR code:', error);
-    console.error('QR data that failed:', qrData);
-    qrLoading.textContent = 'Failed to load QR - check console';
+    qrLoading.textContent = 'QR Error - See terminal logs';
     qrLoading.classList.remove('hidden');
+    qrCanvas.style.display = 'none';
+    qrImage.style.display = 'none';
   }
 }
 
