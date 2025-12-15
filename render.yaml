@@ -7,8 +7,4 @@ services:
     envVars:
       - key: PORT
         value: 3000
-    disk:
-      name: auth-data
-      mountPath: /opt/render/project/src/auth_info
-      sizeGB: 1
 
