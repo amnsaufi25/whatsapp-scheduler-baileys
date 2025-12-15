@@ -149,6 +149,11 @@ async function processJobs() {
     if (!job.sent && sendTime <= now) {
       try {
         const jid = `${job.phone}@s.whatsapp.net`;
+        
+        // Check if actually connected before sending
+        if (connectionStatus.state !== 'open') {
+           throw new Error('WhatsApp not connected');
+        }
 
         await sock.sendMessage(jid, { text: job.message });
 

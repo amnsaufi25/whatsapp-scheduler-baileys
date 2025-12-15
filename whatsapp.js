@@ -45,6 +45,8 @@ export async function connectWhatsApp() {
     // Disconnected
     if (connection === 'close') {
       connectionStatus.state = 'close';
+      connectionStatus.qrCode = null; // Clear QR code on close
+      
       const statusCode =
         lastDisconnect?.error?.output?.statusCode;
 
@@ -52,6 +54,7 @@ export async function connectWhatsApp() {
         statusCode !== DisconnectReason.loggedOut;
 
       if (shouldReconnect) {
+        connectionStatus.state = 'connecting';
         console.log('Connection lost. Reconnecting...');
         connectWhatsApp();
       } else {
