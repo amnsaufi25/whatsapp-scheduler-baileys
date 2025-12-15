@@ -4,7 +4,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
-import { connectWhatsApp, connectionStatus } from './whatsapp.js';
+import { connectWhatsApp, connectionStatus, reconnectWhatsApp } from './whatsapp.js';
 
 dotenv.config();
 
@@ -119,6 +119,16 @@ app.delete('/api/jobs/:id', (req, res) => {
 app.get('/api/status', (req, res) => {
   console.log('Status API called - state:', connectionStatus.state, 'qrCode exists:', !!connectionStatus.qrCode);
   res.json(connectionStatus);
+});
+
+// Reconnect WhatsApp (clears auth and gets new QR)
+app.post('/api/reconnect', async (req, res) => {
+  try {
+    await reconnectWhatsApp();
+    res.json({ success: true, message: 'Reconnecting... Check status for QR code' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // Debug time and trigger

@@ -4,6 +4,8 @@ import makeWASocket, {
 } from '@whiskeysockets/baileys';
 
 import qrcode from 'qrcode-terminal';
+import fs from 'fs';
+import path from 'path';
 
 // Connection status object exported for API access
 export const connectionStatus = {
@@ -61,9 +63,33 @@ export async function connectWhatsApp() {
         connectionStatus.state = 'logged_out';
         console.log('Logged out from WhatsApp.');
         console.log('Delete auth_info folder and restart to re-scan QR.');
+        // Auto-reconnect after 5 seconds
+        setTimeout(() => {
+          if (connectionStatus.state === 'logged_out') {
+            console.log('Attempting to reconnect...');
+            reconnectWhatsApp();
+          }
+        }, 5000);
       }
     }
   });
 
   return sock;
+}
+
+// Reconnect function that clears auth and gets new QR
+export async function reconnectWhatsApp() {
+  try {
+    const authPath = path.join(process.cwd(), 'auth_info');
+    if (fs.existsSync(authPath)) {
+      console.log('Clearing old auth session...');
+      fs.rmSync(authPath, { recursive: true, force: true });
+    }
+    connectionStatus.state = 'connecting';
+    connectionStatus.qrCode = null;
+    return await connectWhatsApp();
+  } catch (err) {
+    console.error('Failed to reconnect:', err);
+    connectionStatus.state = 'disconnected';
+  }
 }
