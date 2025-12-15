@@ -21,6 +21,7 @@ const qrOverlay = document.getElementById('qrOverlay');
 const qrClose = document.getElementById('qrClose');
 const qrCanvas = document.getElementById('qrCanvas');
 const qrLoading = document.getElementById('qrLoading');
+const qrRefreshBtn = document.getElementById('qrRefreshBtn');
 
 let deleteJobId = null;
 let currentQrCode = null;
@@ -314,6 +315,14 @@ deleteClose.addEventListener('click', closeDeleteConfirm);
 deleteCancelBtn.addEventListener('click', closeDeleteConfirm);
 deleteConfirmBtn.addEventListener('click', handleDelete);
 qrClose.addEventListener('click', closeQrModal);
+qrRefreshBtn.addEventListener('click', async () => {
+  qrLoading.textContent = 'Refreshing...';
+  qrLoading.classList.remove('hidden');
+  await fetchStatus();
+  if (currentQrCode) {
+    await renderQrCode(currentQrCode);
+  }
+});
 
 // Click on status to open QR modal when in QR state
 statusEl.addEventListener('click', () => {

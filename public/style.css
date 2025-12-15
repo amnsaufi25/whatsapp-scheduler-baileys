@@ -473,7 +473,16 @@ form {
 .qr-note {
   font-size: 0.75rem !important;
   color: var(--text-muted) !important;
-  margin-bottom: 0 !important;
+  margin-bottom: 1rem !important;
+}
+
+.qr-refresh-btn {
+  margin-top: 0.5rem;
+}
+
+.qr-refresh-btn svg {
+  width: 16px;
+  height: 16px;
 }
 
 /* Clickable status for QR */
