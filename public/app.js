@@ -130,9 +130,12 @@ function updateStatus(status) {
     case 'qr':
       statusEl.classList.add('qr');
       textEl.textContent = 'Scan QR Code';
-      if (status.qrCode && status.qrCode !== currentQrCode) {
-        currentQrCode = status.qrCode;
-        renderQrCode(status.qrCode);
+      if (status.qrCode) {
+        // Always update and render QR code when available
+        if (status.qrCode !== currentQrCode) {
+          currentQrCode = status.qrCode;
+          renderQrCode(status.qrCode);
+        }
         // Auto-open QR modal if not already open
         if (!qrOverlay.classList.contains('active')) {
           openQrModal();
@@ -155,22 +158,27 @@ function updateStatus(status) {
 }
 
 // Render QR code to canvas
-function renderQrCode(qrData) {
-  qrLoading.classList.add('hidden');
-  QRCode.toCanvas(qrCanvas, qrData, {
-    width: 256,
-    margin: 2,
-    color: {
-      dark: '#000000',
-      light: '#ffffff'
-    }
-  }, (error) => {
-    if (error) {
-      console.error('Failed to render QR code:', error);
-      qrLoading.textContent = 'Failed to load QR';
-      qrLoading.classList.remove('hidden');
-    }
-  });
+async function renderQrCode(qrData) {
+  try {
+    qrLoading.classList.remove('hidden');
+    qrLoading.textContent = 'Loading QR...';
+    
+    await QRCode.toCanvas(qrCanvas, qrData, {
+      width: 256,
+      margin: 2,
+      color: {
+        dark: '#000000',
+        light: '#ffffff'
+      }
+    });
+    
+    qrLoading.classList.add('hidden');
+    console.log('QR code rendered successfully');
+  } catch (error) {
+    console.error('Failed to render QR code:', error);
+    qrLoading.textContent = 'Failed to load QR';
+    qrLoading.classList.remove('hidden');
+  }
 }
 
 // Open QR modal
@@ -307,10 +315,16 @@ deleteCancelBtn.addEventListener('click', closeDeleteConfirm);
 deleteConfirmBtn.addEventListener('click', handleDelete);
 qrClose.addEventListener('click', closeQrModal);
 
-// Click on status to open QR modal when QR is available
+// Click on status to open QR modal when in QR state
 statusEl.addEventListener('click', () => {
-  if (statusEl.classList.contains('qr') && currentQrCode) {
+  if (statusEl.classList.contains('qr')) {
     openQrModal();
+    // If we have a QR code, render it
+    if (currentQrCode) {
+      renderQrCode(currentQrCode);
+    }
+    // Also fetch fresh status
+    fetchStatus();
   }
 });
 
