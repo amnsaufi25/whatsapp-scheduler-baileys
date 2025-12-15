@@ -28,6 +28,7 @@ export async function connectWhatsApp() {
   // Connection updates
   sock.ev.on('connection.update', (update) => {
     const { connection, lastDisconnect, qr } = update;
+    console.log('Connection update:', { connection, qr: !!qr, hasLastDisconnect: !!lastDisconnect });
 
     // Show QR in terminal and store it
     if (qr) {
