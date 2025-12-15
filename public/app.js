@@ -151,14 +151,14 @@ function updateStatus(status) {
     case 'logged_out':
       statusEl.classList.add('disconnected');
       textEl.textContent = 'Disconnected - Click to reconnect';
-      statusEl.style.cursor = 'pointer';
       currentQrCode = null;
-      // Auto-reconnect after 2 seconds
+      // Auto-reconnect after 3 seconds
       setTimeout(() => {
         if (statusEl.classList.contains('disconnected')) {
+          console.log('Auto-reconnecting...');
           reconnectWhatsApp();
         }
-      }, 2000);
+      }, 3000);
       break;
     default:
       statusEl.classList.add('disconnected');
@@ -212,14 +212,27 @@ function closeQrModal() {
 
 // Reconnect WhatsApp
 async function reconnectWhatsApp() {
+  console.log('reconnectWhatsApp called');
   try {
+    statusEl.querySelector('.status-text').textContent = 'Reconnecting...';
     const res = await fetch('/api/reconnect', { method: 'POST' });
     const data = await res.json();
     console.log('Reconnect response:', data);
     // Refresh status after 1 second
-    setTimeout(fetchStatus, 1000);
+    setTimeout(() => {
+      fetchStatus();
+      // Keep checking every 2 seconds until connected or QR appears
+      const checkInterval = setInterval(() => {
+        fetchStatus().then(() => {
+          if (!statusEl.classList.contains('disconnected')) {
+            clearInterval(checkInterval);
+          }
+        });
+      }, 2000);
+    }, 1000);
   } catch (err) {
     console.error('Failed to reconnect:', err);
+    statusEl.querySelector('.status-text').textContent = 'Reconnect failed - Click to try again';
   }
 }
 
@@ -356,7 +369,8 @@ qrRefreshBtn.addEventListener('click', async () => {
 });
 
 // Click on status to open QR modal when in QR state, or reconnect when disconnected
-statusEl.addEventListener('click', () => {
+statusEl.addEventListener('click', (e) => {
+  console.log('Status clicked, classes:', statusEl.className);
   if (statusEl.classList.contains('qr')) {
     openQrModal();
     // If we have a QR code, render it
@@ -366,6 +380,7 @@ statusEl.addEventListener('click', () => {
     // Also fetch fresh status
     fetchStatus();
   } else if (statusEl.classList.contains('disconnected')) {
+    console.log('Reconnecting via click...');
     reconnectWhatsApp();
   }
 });

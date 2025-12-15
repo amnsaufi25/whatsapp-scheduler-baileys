@@ -99,6 +99,18 @@ body {
   box-shadow: 0 0 8px var(--accent);
 }
 
+.status.disconnected {
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.status.disconnected:hover {
+  background: var(--bg-tertiary);
+  border-color: var(--danger);
+  transform: scale(1.02);
+}
+
 .status.disconnected .status-dot {
   background: var(--danger);
   box-shadow: 0 0 8px var(--danger);
